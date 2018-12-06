@@ -14,71 +14,73 @@
 # update_fastlane
 
 platform :ios do
-desc "Creates a release tag with commentMessage and uploads the zip framework to that release."
-desc "Run this lane only after the framework is build else it will throw error"
-desc "Required: `project`. The xcodeproj project name is required."
-desc "Required: `repo`.    The repo name where the project lives is required. This name is used to generate framework.zip."
-lane :release_to_github do |options|
+
+ desc "Creates a release tag with commentMessage and uploads the zip framework to that release."
+ desc "Run this lane only after the framework is build else it will throw error"
+ desc "Required: `project`. The xcodeproj project name is required."
+ desc "Required: `repo`.    The repo name where the project lives is required. This name is used to generate framework.zip."
+ lane :release_to_github do |options|
   
-  UI.user_error!("`project` parameter is required.") unless options[:project]
-  UI.user_error!("`repo` parameter is required.") unless options[:repo]
+   UI.user_error!("`project` parameter is required.") unless options[:project]
+   UI.user_error!("`repo` parameter is required.") unless options[:repo]
   
-  projectName = options[:project]
-  repoName = options[:repo]
+   projectName = options[:project]
+   repoName = options[:repo]
   
-  derivedData_folder = File.expand_path("#{ENV["PWD"]}/DerivedData")
+   derivedData_folder = File.expand_path("#{ENV["PWD"]}/DerivedData")
   
-  if !File.exist? derivedData_folder
-    UI.error "The framework is not build yet. Run fastlane build_framework and then bump the version before uploading the framework to github"
-  elsif
+   if !File.exist? derivedData_folder
+     UI.error "The framework is not build yet. Run fastlane build_framework and then bump the version before uploading the framework to github"
+   elsif
     
-    # Fetch all the tags so that last_git_tag pulls in the right last tag
-    sh('git fetch --tags')
+     # Fetch all the tags so that last_git_tag pulls in the right last tag
+     sh('git fetch --tags')
     
-    if last_git_tag == "HEAD" || last_git_tag == nil
-      UI.error "The last_git_tag is either same as HEAD or nil. Please run fastlane ios bump_version_and_tag before running this lane"
-    elsif
+     if last_git_tag == "HEAD" || last_git_tag == nil
+       UI.error "The last_git_tag is either same as HEAD or nil. Please run fastlane ios bump_version_and_tag before running this lane"
+     elsif
       
-      # Create changelog from the last git tag and the latest one that we tagged and release
-      release_notes = changelog_from_git_commits(
-        between: [last_git_tag, "HEAD"],
-        pretty: "- %s",
-        date_format: "short",
-        match_lightweight_tag: false,
-        merge_commit_filtering: "exclude_merges"
-      )
+       # Create changelog from the last git tag and the latest one that we tagged and release
+       release_notes = changelog_from_git_commits(
+         between: [last_git_tag, "HEAD"],
+         pretty: "- %s",
+         date_format: "short",
+         match_lightweight_tag: false,
+         merge_commit_filtering: "exclude_merges"
+       )
       
-      # Get the version number
-      #version = get_version_number(xcodeproj: "#{projectName}.xcodeproj")
-      version = "1.9.0"
-      UI.message "current version \"#{version}\""
+       # Get the version number
+       #version = get_version_number(xcodeproj: "#{projectName}.xcodeproj")
+       version = "1.9.0"
+       UI.message "current version \"#{version}\""
       
-      commentMessage = last_git_commit[:message]
+       commentMessage = last_git_commit[:message]
       
-      # Search for the framework in the project directory and copy it out.
-      sh ("find '#{ENV["PWD"]}' -name '*.framework' -exec cp -prv '{}' '#{ENV["PWD"]}' ';'")
+       # Search for the framework in the project directory and copy it out.
+       sh ("find '#{ENV["PWD"]}' -name '*.framework' -exec cp -prv '{}' '#{ENV["PWD"]}' ';'")
       
-      # Zip the framework. set_github_release requires a zip version
-      sh ("zip -r '../#{repoName}.framework.zip' ../#{projectName}.framework")
+       # Zip the framework. set_github_release requires a zip version
+       sh ("zip -r '../#{repoName}.framework.zip' ../#{projectName}.framework")
       
-      # Remove the copied framework once the zip is ready
-      sh ("rm -rf '#{ENV["PWD"]}/#{projectName}.framework'")
+       # Remove the copied framework once the zip is ready
+       sh ("rm -rf '#{ENV["PWD"]}/#{projectName}.framework'")
       
-      UI.message "Successfully created the zip of the framework"
+       UI.message "Successfully created the zip of the framework"
             
-      github_release = set_github_release(
-        api_token: ENV['GITHUB_TOKEN'],
-        repository_name: "sanojnambiar/#{repoName}",
-        name: "Version v#{version}",
-        tag_name: "#{version}",
-        description: release_notes,
-        commitish: "master",
-        upload_assets: ["#{repoName}.framework.zip"]
-      )
+       github_release = set_github_release(
+         api_token: ENV['GITHUB_TOKEN'],
+         repository_name: "sanojnambiar/#{repoName}",
+         name: "Version v#{version}",
+         tag_name: "#{version}",
+         description: release_notes,
+         commitish: "master",
+         upload_assets: ["#{repoName}.framework.zip"]
+       )
       
-      UI.success "Successfully uploaded the framework to the repo 🎊."
-      # Remove the zip framework once it is uploaded
-      sh ("rm -rf '#{ENV["PWD"]}/#{repoName}.framework.zip'")
-    end
-  end
+       UI.success "Successfully uploaded the framework to the repo 🎊."
+       # Remove the zip framework once it is uploaded
+       sh ("rm -rf '#{ENV["PWD"]}/#{repoName}.framework.zip'")
+     end
+   end
+ end
 end
