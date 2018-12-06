@@ -64,12 +64,9 @@ lane :release_to_github do |options|
       sh ("rm -rf '#{ENV["PWD"]}/#{projectName}.framework'")
       
       UI.message "Successfully created the zip of the framework"
-      
-      # This should do in the .evn or somehting. Please dont expose
-      GITHUB_TOKEN = "eec6001499dc697add67aec7705251db8a7a3f2f"
-      
+            
       github_release = set_github_release(
-        api_token: GITHUB_TOKEN,
+        api_token: ENV['GITHUB_TOKEN'],
         repository_name: "sanojnambiar/#{repoName}",
         name: "Version v#{version}",
         tag_name: "#{version}",
