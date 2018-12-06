@@ -13,6 +13,7 @@
 # Uncomment the line if you want fastlane to automatically update itself
 # update_fastlane
 
+platform :ios do
 desc "Creates a release tag with commentMessage and uploads the zip framework to that release."
 desc "Run this lane only after the framework is build else it will throw error"
 desc "Required: `project`. The xcodeproj project name is required."
@@ -49,7 +50,7 @@ lane :release_to_github do |options|
       
       # Get the version number
       #version = get_version_number(xcodeproj: "#{projectName}.xcodeproj")
-      version = "1.8.0"
+      version = "1.9.0"
       UI.message "current version \"#{version}\""
       
       commentMessage = last_git_commit[:message]
