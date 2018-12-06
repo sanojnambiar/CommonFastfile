@@ -49,7 +49,7 @@ lane :release_to_github do |options|
       
       # Get the version number
       #version = get_version_number(xcodeproj: "#{projectName}.xcodeproj")
-      version = "1.6.0"
+      version = "1.8.0"
       UI.message "current version \"#{version}\""
       
       commentMessage = last_git_commit[:message]
